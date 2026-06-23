@@ -2,17 +2,31 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { Field, TextInput, TextArea } from './FormFields'
 import ComicButton from '../components/ComicButton'
+import ConfirmModal from '../components/ConfirmModal'
 
 export default function AdminProfileTab({ profile, onChanged, showToast }) {
   const [form, setForm] = useState(profile)
   const [saving, setSaving] = useState(false)
+  const [confirmConfig, setConfirmConfig] = useState({ isOpen: false })
 
   useEffect(() => {
     setForm(profile)
   }, [profile])
 
-  async function handleSave(e) {
+  function requestSave(e) {
     e.preventDefault()
+    setConfirmConfig({
+      isOpen: true,
+      title: 'SIMPAN PROFIL',
+      message: 'Yakin ingin menyimpan perubahan pada profil ini?',
+      confirmVariant: 'pink',
+      onConfirm: executeSave,
+      onCancel: () => setConfirmConfig({ isOpen: false })
+    })
+  }
+
+  async function executeSave() {
+    setConfirmConfig({ isOpen: false })
     setSaving(true)
     const payload = {
       name: form.name,
@@ -42,8 +56,9 @@ export default function AdminProfileTab({ profile, onChanged, showToast }) {
 
   return (
     <div className="comic-panel p-5 bg-white max-w-2xl">
+      <ConfirmModal {...confirmConfig} />
       <div className="font-display text-base text-pink mb-3 tracking-wide">EDIT PROFIL</div>
-      <form onSubmit={handleSave}>
+      <form onSubmit={requestSave}>
         <div className="grid sm:grid-cols-2 gap-x-4">
           <Field label="NAMA">
             <TextInput value={form.name || ''} onChange={(e) => setForm({ ...form, name: e.target.value })} />
