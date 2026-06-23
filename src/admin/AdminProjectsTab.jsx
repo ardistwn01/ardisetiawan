@@ -10,6 +10,23 @@ export default function AdminProjectsTab({ projects, onChanged, showToast }) {
   const [form, setForm] = useState(emptyForm)
   const [saving, setSaving] = useState(false)
   const [selectedFiles, setSelectedFiles] = useState([])
+  const [editingId, setEditingId] = useState(null)
+
+  function handleEdit(p) {
+    setForm({
+      title: p.title || '',
+      url: p.url || '',
+      repo_url: p.repo_url || '',
+      icon: p.icon || '🚀',
+      description: p.description || '',
+      stack: (p.stack || []).join(', '),
+      featured: p.featured || false,
+      images: p.images || []
+    })
+    setEditingId(p.id)
+    setSelectedFiles([])
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   async function handleAdd(e) {
     e.preventDefault()
@@ -47,7 +64,7 @@ export default function AdminProjectsTab({ projects, onChanged, showToast }) {
       }
     }
 
-    const { error } = await supabase.from('projects').insert({
+    const projectData = {
       title: form.title,
       url: form.url,
       repo_url: form.repo_url,
@@ -55,16 +72,30 @@ export default function AdminProjectsTab({ projects, onChanged, showToast }) {
       description: form.description || 'Project baru',
       stack: form.stack ? form.stack.split(',').map((s) => s.trim()) : [],
       featured: form.featured,
-      images: uploadedUrls,
-      sort_order: projects.length + 1,
-    })
+      images: [...(form.images || []), ...uploadedUrls],
+    }
+
+    let error;
+    if (editingId) {
+      const res = await supabase.from('projects').update(projectData).eq('id', editingId)
+      error = res.error
+    } else {
+      projectData.sort_order = projects.length + 1
+      const res = await supabase.from('projects').insert(projectData)
+      error = res.error
+    }
     setSaving(false)
     if (error) {
       showToast(error.message, 'error')
     } else {
       setForm(emptyForm)
       setSelectedFiles([])
-      showToast('Project ditambahkan! 🚀')
+      if (editingId) {
+        setEditingId(null)
+        showToast('Project berhasil diperbarui! 🚀')
+      } else {
+        showToast('Project ditambahkan! 🚀')
+      }
       onChanged()
     }
   }
@@ -81,7 +112,9 @@ export default function AdminProjectsTab({ projects, onChanged, showToast }) {
   return (
     <div>
       <div className="comic-panel p-5 mb-6 bg-white">
-        <div className="font-display text-base text-red mb-3 tracking-wide">+ TAMBAH PROJECT</div>
+        <div className="font-display text-base text-red mb-3 tracking-wide">
+          {editingId ? 'EDIT PROJECT' : '+ TAMBAH PROJECT'}
+        </div>
         <form onSubmit={handleAdd}>
           <div className="grid sm:grid-cols-2 gap-x-4">
             <Field label="NAMA PROJECT">
@@ -136,9 +169,14 @@ export default function AdminProjectsTab({ projects, onChanged, showToast }) {
               onChange={(e) => setSelectedFiles(Array.from(e.target.files))}
               className="w-full font-mono text-sm px-3 py-2 border-2 border-ink bg-white/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-yellow focus:border-yellow transition-all rounded"
             />
-            {selectedFiles.length > 0 && (
+            {form.images && form.images.length > 0 && (
               <p className="mt-2 text-xs font-mono text-ink/70">
-                {selectedFiles.length} file dipilih
+                Project ini sudah memiliki {form.images.length} foto. Jika Anda memilih file baru, foto tersebut akan ditambahkan ke daftar yang sudah ada.
+              </p>
+            )}
+            {selectedFiles.length > 0 && (
+              <p className="mt-2 text-xs font-mono text-ink/70 font-bold">
+                + {selectedFiles.length} file baru dipilih
               </p>
             )}
           </Field>
@@ -151,9 +189,16 @@ export default function AdminProjectsTab({ projects, onChanged, showToast }) {
               />
               Featured
             </label>
-            <ComicButton type="submit" variant="green" disabled={saving}>
-              {saving ? 'Menyimpan...' : '+ ADD PROJECT'}
-            </ComicButton>
+            <div className="flex items-center gap-2">
+              {editingId && (
+                <ComicButton type="button" variant="red" onClick={() => { setEditingId(null); setForm(emptyForm); setSelectedFiles([]) }}>
+                  BATAL
+                </ComicButton>
+              )}
+              <ComicButton type="submit" variant="green" disabled={saving}>
+                {saving ? 'Menyimpan...' : (editingId ? 'UPDATE PROJECT' : '+ ADD PROJECT')}
+              </ComicButton>
+            </div>
           </div>
         </form>
       </div>
@@ -165,6 +210,7 @@ export default function AdminProjectsTab({ projects, onChanged, showToast }) {
             key={p.id}
             title={`${p.icon || '🚀'} ${p.title}${p.featured ? ' ★' : ''}`}
             subtitle={`${(p.stack || []).join(', ')} · ${p.url}`}
+            onEdit={() => handleEdit(p)}
             onDelete={() => handleDelete(p.id)}
           />
         ))}
