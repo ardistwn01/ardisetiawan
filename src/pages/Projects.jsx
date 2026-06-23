@@ -35,9 +35,25 @@ export default function Projects({ projects }) {
                 transition={{ duration: 0.15 }}
               >
                 {p.featured && (
-                  <span className="absolute top-0 right-0 bg-red text-white font-display text-xs tracking-wider px-3 py-1 rounded-bl-md">
+                  <span className="absolute top-0 right-0 z-10 bg-red text-white font-display text-xs tracking-wider px-3 py-1 rounded-bl-md border-l-3 border-b-3 border-ink">
                     ★ FEATURED
                   </span>
+                )}
+
+                {/* Image Cover */}
+                {p.images && p.images.length > 0 && (
+                  <div className="relative -mx-6 -mt-6 mb-5 h-48 border-b-[3px] border-ink overflow-hidden rounded-t-[6px] bg-white">
+                    <img
+                      src={p.images[0]}
+                      alt={p.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    {p.images.length > 1 && (
+                      <div className="absolute bottom-3 right-3 bg-yellow text-ink font-display tracking-wide text-sm px-2.5 py-1 border-2 border-ink rounded shadow-[2px_2px_0_#1A1A2E]">
+                        +{p.images.length - 1} FOTO
+                      </div>
+                    )}
+                  </div>
                 )}
 
                 {/* Number + Icon */}

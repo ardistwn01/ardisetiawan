@@ -4,11 +4,12 @@ import { Field, TextInput, TextArea } from './FormFields'
 import AdminListItem from './AdminListItem'
 import ComicButton from '../components/ComicButton'
 
-const emptyForm = { title: '', url: '', repo_url: '', stack: '', icon: '🚀', description: '', featured: false }
+const emptyForm = { title: '', url: '', repo_url: '', stack: '', icon: '🚀', description: '', featured: false, images: [] }
 
 export default function AdminProjectsTab({ projects, onChanged, showToast }) {
   const [form, setForm] = useState(emptyForm)
   const [saving, setSaving] = useState(false)
+  const [selectedFiles, setSelectedFiles] = useState([])
 
   async function handleAdd(e) {
     e.preventDefault()
@@ -17,6 +18,35 @@ export default function AdminProjectsTab({ projects, onChanged, showToast }) {
       return
     }
     setSaving(true)
+    let uploadedUrls = []
+
+    // Upload files if any
+    if (selectedFiles.length > 0) {
+      for (const file of selectedFiles) {
+        const fileExt = file.name.split('.').pop()
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
+        const filePath = `${fileName}`
+
+        const { error: uploadError, data } = await supabase.storage
+          .from('project-images')
+          .upload(filePath, file)
+
+        if (uploadError) {
+          showToast(`Gagal upload foto: ${uploadError.message}`, 'error')
+          setSaving(false)
+          return
+        }
+
+        if (data) {
+          const { data: publicUrlData } = supabase.storage
+            .from('project-images')
+            .getPublicUrl(filePath)
+          
+          uploadedUrls.push(publicUrlData.publicUrl)
+        }
+      }
+    }
+
     const { error } = await supabase.from('projects').insert({
       title: form.title,
       url: form.url,
@@ -25,6 +55,7 @@ export default function AdminProjectsTab({ projects, onChanged, showToast }) {
       description: form.description || 'Project baru',
       stack: form.stack ? form.stack.split(',').map((s) => s.trim()) : [],
       featured: form.featured,
+      images: uploadedUrls,
       sort_order: projects.length + 1,
     })
     setSaving(false)
@@ -32,6 +63,7 @@ export default function AdminProjectsTab({ projects, onChanged, showToast }) {
       showToast(error.message, 'error')
     } else {
       setForm(emptyForm)
+      setSelectedFiles([])
       showToast('Project ditambahkan! 🚀')
       onChanged()
     }
@@ -95,6 +127,20 @@ export default function AdminProjectsTab({ projects, onChanged, showToast }) {
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               placeholder="Ceritain projectnya..."
             />
+          </Field>
+          <Field label="FOTO PROJECT (BISA LEBIH DARI SATU)">
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={(e) => setSelectedFiles(Array.from(e.target.files))}
+              className="w-full font-mono text-sm px-3 py-2 border-2 border-ink bg-white/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-yellow focus:border-yellow transition-all rounded"
+            />
+            {selectedFiles.length > 0 && (
+              <p className="mt-2 text-xs font-mono text-ink/70">
+                {selectedFiles.length} file dipilih
+              </p>
+            )}
           </Field>
           <div className="flex items-center justify-between mt-2">
             <label className="flex items-center gap-2 font-display text-sm cursor-pointer">
