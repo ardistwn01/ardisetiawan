@@ -66,7 +66,6 @@ function PortfolioRoutes() {
         <Route path="/experience"   element={<AnimatedPage key="experience"><Experience experiences={experiences} /></AnimatedPage>} />
         <Route path="/certificates" element={<AnimatedPage key="certs"><Certificates certificates={certificates} /></AnimatedPage>} />
         <Route path="/contact"      element={<AnimatedPage key="contact"><Contact profile={profile} /></AnimatedPage>} />
-        <Route path="/admin"        element={<AnimatedPage key="admin"><AdminPage /></AnimatedPage>} />
       </Route>
     </Routes>
   )
