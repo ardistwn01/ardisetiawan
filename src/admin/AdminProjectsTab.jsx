@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { Field, TextInput, TextArea } from './FormFields'
 import AdminListItem from './AdminListItem'
 import ComicButton from '../components/ComicButton'
+import ConfirmModal from '../components/ConfirmModal'
 import { X } from 'lucide-react'
 
 const emptyForm = { title: '', url: '', repo_url: '', stack: '', icon: '🚀', description: '', featured: false, images: [] }
@@ -12,6 +13,7 @@ export default function AdminProjectsTab({ projects, onChanged, showToast }) {
   const [saving, setSaving] = useState(false)
   const [selectedFiles, setSelectedFiles] = useState([])
   const [editingId, setEditingId] = useState(null)
+  const [confirmConfig, setConfirmConfig] = useState({ isOpen: false })
 
   function handleEdit(p) {
     setForm({
@@ -29,7 +31,7 @@ export default function AdminProjectsTab({ projects, onChanged, showToast }) {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  async function handleAdd(e) {
+  function requestAdd(e) {
     e.preventDefault()
     if (!form.title || !form.url) {
       showToast('Judul dan URL wajib diisi', 'error')
@@ -37,10 +39,18 @@ export default function AdminProjectsTab({ projects, onChanged, showToast }) {
     }
 
     const actionText = editingId ? 'mengupdate' : 'menambahkan'
-    if (!window.confirm(`Yakin ingin ${actionText} project ini?`)) {
-      return
-    }
+    setConfirmConfig({
+      isOpen: true,
+      title: editingId ? 'UPDATE PROJECT' : 'TAMBAH PROJECT',
+      message: `Yakin ingin ${actionText} project ini?`,
+      confirmVariant: editingId ? 'yellow' : 'green',
+      onConfirm: executeAdd,
+      onCancel: () => setConfirmConfig({ isOpen: false })
+    })
+  }
 
+  async function executeAdd() {
+    setConfirmConfig({ isOpen: false })
     setSaving(true)
     let uploadedUrls = []
 
@@ -107,11 +117,19 @@ export default function AdminProjectsTab({ projects, onChanged, showToast }) {
     }
   }
 
-  async function handleDelete(id) {
-    if (!window.confirm('Yakin ingin menghapus project ini? Aksi ini tidak dapat dibatalkan.')) {
-      return
-    }
+  function handleDelete(id) {
+    setConfirmConfig({
+      isOpen: true,
+      title: 'HAPUS PROJECT',
+      message: 'Yakin ingin menghapus project ini? Aksi ini tidak dapat dibatalkan.',
+      confirmVariant: 'red',
+      onConfirm: () => executeDelete(id),
+      onCancel: () => setConfirmConfig({ isOpen: false })
+    })
+  }
 
+  async function executeDelete(id) {
+    setConfirmConfig({ isOpen: false })
     const { error } = await supabase.from('projects').delete().eq('id', id)
     if (error) showToast(error.message, 'error')
     else {
@@ -122,11 +140,12 @@ export default function AdminProjectsTab({ projects, onChanged, showToast }) {
 
   return (
     <div>
+      <ConfirmModal {...confirmConfig} />
       <div className="comic-panel p-5 mb-6 bg-white">
         <div className="font-display text-base text-red mb-3 tracking-wide">
           {editingId ? 'EDIT PROJECT' : '+ TAMBAH PROJECT'}
         </div>
-        <form onSubmit={handleAdd}>
+        <form onSubmit={requestAdd}>
           <div className="grid sm:grid-cols-2 gap-x-4">
             <Field label="NAMA PROJECT">
               <TextInput
