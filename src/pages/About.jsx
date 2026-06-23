@@ -26,8 +26,13 @@ export default function About({ profile, skills }) {
         {/* Bio */}
         <RevealOnScroll>
           <TiltCard intensity={6}>
-            <div className="comic-panel p-6 h-full">
-              <div className="font-display text-lg text-red mb-2 tracking-wide">THE ORIGIN STORY</div>
+            <div className="comic-panel p-6 h-full flex flex-col">
+              <div className="font-display text-lg text-red mb-4 tracking-wide">THE ORIGIN STORY</div>
+              {profile.about_image_url && (
+                <div className="w-full h-48 sm:h-64 mb-5 border-[3px] border-ink rounded overflow-hidden shadow-[4px_4px_0_#1A1A2E]">
+                  <img src={profile.about_image_url} alt="About Me" className="w-full h-full object-cover" />
+                </div>
+              )}
               <p className="text-[0.95rem] text-ink/80 leading-relaxed">{profile.bio}</p>
             </div>
           </TiltCard>

@@ -174,7 +174,15 @@ export default function Home({ profile, projects, certificates, experiences }) {
               transition={{ delay: 0.6, type: 'spring', stiffness: 200, damping: 18 }}
               className="comic-panel w-[220px] h-[260px] flex items-end justify-center overflow-hidden"
             >
-              <ComicAvatar className="w-[180px] h-[220px]" />
+              {profile.home_image_url ? (
+                <img
+                  src={profile.home_image_url}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <ComicAvatar className="w-[180px] h-[220px]" />
+              )}
             </motion.div>
           </TiltCard>
 
