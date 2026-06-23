@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X, Settings } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
 
 const links = [
   { to: '/', label: 'Home' },
@@ -45,12 +45,6 @@ export default function Navbar() {
           ))}
         </ul>
 
-        <Link
-          to="/admin"
-          className="hidden md:inline-flex items-center gap-1.5 font-display text-sm tracking-wider px-3 py-1.5 rounded bg-yellow text-ink border-2 border-yellow hover:bg-orange hover:border-orange transition-colors"
-        >
-          <Settings size={14} strokeWidth={3} /> Admin
-        </Link>
 
         <button
           className="md:hidden text-yellow"
@@ -83,15 +77,6 @@ export default function Navbar() {
                   </Link>
                 </li>
               ))}
-              <li>
-                <Link
-                  to="/admin"
-                  onClick={() => setOpen(false)}
-                  className="flex items-center gap-1.5 font-display text-base tracking-wider px-3 py-2 rounded bg-yellow text-ink mt-1 w-fit"
-                >
-                  <Settings size={15} strokeWidth={3} /> Admin
-                </Link>
-              </li>
             </ul>
           </motion.div>
         )}
