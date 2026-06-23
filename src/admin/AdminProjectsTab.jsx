@@ -35,6 +35,12 @@ export default function AdminProjectsTab({ projects, onChanged, showToast }) {
       showToast('Judul dan URL wajib diisi', 'error')
       return
     }
+
+    const actionText = editingId ? 'mengupdate' : 'menambahkan'
+    if (!window.confirm(`Yakin ingin ${actionText} project ini?`)) {
+      return
+    }
+
     setSaving(true)
     let uploadedUrls = []
 
@@ -102,6 +108,10 @@ export default function AdminProjectsTab({ projects, onChanged, showToast }) {
   }
 
   async function handleDelete(id) {
+    if (!window.confirm('Yakin ingin menghapus project ini? Aksi ini tidak dapat dibatalkan.')) {
+      return
+    }
+
     const { error } = await supabase.from('projects').delete().eq('id', id)
     if (error) showToast(error.message, 'error')
     else {
