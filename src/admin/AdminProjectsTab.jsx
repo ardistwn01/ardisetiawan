@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { Field, TextInput, TextArea } from './FormFields'
 import AdminListItem from './AdminListItem'
 import ComicButton from '../components/ComicButton'
+import { X } from 'lucide-react'
 
 const emptyForm = { title: '', url: '', repo_url: '', stack: '', icon: '🚀', description: '', featured: false, images: [] }
 
@@ -161,7 +162,24 @@ export default function AdminProjectsTab({ projects, onChanged, showToast }) {
               placeholder="Ceritain projectnya..."
             />
           </Field>
-          <Field label="FOTO PROJECT (BISA LEBIH DARI SATU)">
+          <Field label="FOTO PROJECT">
+            {form.images && form.images.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-3">
+                {form.images.map((url, idx) => (
+                  <div key={idx} className="relative w-16 h-16 border-2 border-ink rounded overflow-hidden shadow-[2px_2px_0_#1A1A2E]">
+                    <img src={url} alt="preview" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setForm({ ...form, images: form.images.filter((_, i) => i !== idx) })}
+                      className="absolute top-0 right-0 bg-red text-white p-0.5 border-l-2 border-b-2 border-ink hover:bg-orange transition-colors"
+                      title="Hapus foto"
+                    >
+                      <X size={12} strokeWidth={3} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
             <input
               type="file"
               multiple
@@ -169,14 +187,9 @@ export default function AdminProjectsTab({ projects, onChanged, showToast }) {
               onChange={(e) => setSelectedFiles(Array.from(e.target.files))}
               className="w-full font-mono text-sm px-3 py-2 border-2 border-ink bg-white/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-yellow focus:border-yellow transition-all rounded"
             />
-            {form.images && form.images.length > 0 && (
-              <p className="mt-2 text-xs font-mono text-ink/70">
-                Project ini sudah memiliki {form.images.length} foto. Jika Anda memilih file baru, foto tersebut akan ditambahkan ke daftar yang sudah ada.
-              </p>
-            )}
             {selectedFiles.length > 0 && (
               <p className="mt-2 text-xs font-mono text-ink/70 font-bold">
-                + {selectedFiles.length} file baru dipilih
+                + {selectedFiles.length} file baru dipilih (akan ditambahkan)
               </p>
             )}
           </Field>
